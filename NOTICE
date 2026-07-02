@@ -1,0 +1,16 @@
+SecureVector SDK for Hermes
+Copyright (c) SecureVector
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This software integrates with the Hermes agent framework via its public
+plugin API (the `hermes_agent.plugins` entry-point group and its documented
+`pre_tool_call` / `post_tool_call` hooks). "Hermes" and "Nous Research" are
+trademarks of Nous Research. This package is an independent, community
+integration and is not affiliated with, sponsored by, or endorsed by Nous
+Research. The framework name is used only descriptively to identify
+compatibility (nominative fair use).
+
+This package depends on:
+  - securevector-ai-monitor (the local SecureVector app + SDK)
+  - hermes-agent (MIT, (c) 2025 Nous Research)
