@@ -1,0 +1,7 @@
+# Ship the compliance/privacy docs in the source distribution. Story #183
+# requires the harness-tailored PRIVACY.md in the shipped artifact; LICENSE and
+# NOTICE are already picked up as license-files, but PRIVACY.md and the
+# CHANGELOG are not, so include them explicitly.
+include PRIVACY.md
+include CHANGELOG.md
+include NOTICE
