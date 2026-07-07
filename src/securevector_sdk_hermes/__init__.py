@@ -18,12 +18,18 @@ three controls: tool-call permissions, secret/data-leak detection, and threat
 detection. Each decision is written to the app's tamper-evident audit chain
 with ``runtime_kind="hermes"``. Requires the SecureVector app running locally
 (installed automatically as the ``securevector-ai-monitor`` dependency).
+
+LLM cost tracking is included and needs no wiring: the plugin also registers
+Hermes's ``post_api_request`` hook, so every model call's token usage is
+posted to the app's Cost Tracking (dollar cost via the app's pricing table),
+attributed to ``SECUREVECTOR_SDK_AGENT_ID`` (default ``"hermes-agent"``).
 """
 
 import logging
 
 from ._version import __version__
 from .config import Config
+from .costs import CostTracker
 from .errors import AppUnreachable, SecureVectorError, ToolBlocked
 from .plugin import install, register
 from .tool_id import HERMES_BUILTINS, RUNTIME_KIND, candidate_tool_ids
@@ -35,6 +41,7 @@ __all__ = [
     "install",
     "register",
     "Config",
+    "CostTracker",
     "RUNTIME_KIND",
     "HERMES_BUILTINS",
     "candidate_tool_ids",

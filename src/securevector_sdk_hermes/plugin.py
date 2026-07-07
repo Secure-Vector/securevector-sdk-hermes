@@ -34,6 +34,7 @@ from typing import Any, Optional
 
 from .config import Config
 from .core import Decision, Interceptor
+from .costs import CostTracker, make_cost_hook
 from .tool_id import normalize_tool_id
 
 log = logging.getLogger("securevector_sdk_hermes")
@@ -144,6 +145,14 @@ def register(ctx) -> None:
     guard = _HermesGuard(Interceptor(cfg))
     ctx.register_hook("pre_tool_call", guard.pre_tool_call)
     ctx.register_hook("post_tool_call", guard.post_tool_call)
+
+    # Cost tracking — post LLM token usage to the app's Cost Tracking. Hermes
+    # fires post_api_request per API call (always carries usage) and
+    # post_llm_call once per turn (carries usage on newer builds); the tracker
+    # dedupes so a call is never double-counted. Observer-only — never blocks.
+    cost_hook = make_cost_hook(CostTracker(cfg))
+    ctx.register_hook("post_api_request", cost_hook)
+    ctx.register_hook("post_llm_call", cost_hook)
     log.info("SecureVector guard attached to Hermes (mode=%s)", cfg.mode)
 
 
