@@ -3,6 +3,30 @@
 All notable changes to `securevector-sdk-hermes` are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.0]
+
+### Added
+- **LLM cost tracking** (story #185): the plugin now captures Hermes's LLM
+  token usage and posts it to the local app's Cost Tracking
+  (`POST /api/costs/track`), so Hermes agents appear in the dollar-based cost
+  dashboard alongside proxy agents and respect per-agent budgets.
+  - Zero-config: `register()` also wires Hermes's **`post_api_request`** hook
+    (fires per API call, always carries a normalized `usage` dict) and
+    **`post_llm_call`** (once per turn, carries `usage` on newer Hermes builds).
+    The tracker dedupes on `api_request_id` so a call is never double-counted.
+  - Unlike the message-object frameworks, Hermes hands the hook a pre-normalized
+    `CanonicalUsage` dict (`input_tokens` / `output_tokens` / `cache_read_tokens`)
+    plus `provider` and `model` — no message parsing needed.
+  - Provider + model-id normalization onto the app's pricing table keys
+    (`provider/model_id` exact match), including versioned-model aliases and the
+    `xai → grok` / `openai-codex → openai` provider mappings, so dollar cost
+    resolves instead of landing as `pricing_known=false`.
+  - Attribution: records post as `agent_id` `"hermes-agent"` by default;
+    override via `SECUREVECTOR_SDK_AGENT_ID`.
+  - Best-effort like audit forwarding: an unreachable app or unknown model
+    never breaks the agent. Applies to the plugin path (CLI / gateway / ACP);
+    the model hook does not fire under the library-only `install()` embedding.
+
 ## [1.0.0]
 
 ### Added

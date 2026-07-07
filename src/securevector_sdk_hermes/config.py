@@ -12,6 +12,8 @@ Environment variables (all optional):
     SECUREVECTOR_SDK_MODE           observe | enforce          (default observe)
     SECUREVECTOR_SDK_TIMEOUT_MS     per-call verdict timeout   (default 3000)
     SECUREVECTOR_SDK_RISK_THRESHOLD enforce-block risk cutoff  (default 70)
+    SECUREVECTOR_SDK_AGENT_ID        agent id for Cost Tracking attribution
+                                    (default "hermes-agent")
     SECUREVECTOR_SDK_DISABLED       set truthy to no-op entirely
     SECUREVECTOR_API_KEY            credential forwarded to the app as
                                     Authorization: Bearer — required when the
@@ -48,6 +50,7 @@ class Config:
     mode: str = "observe"            # observe (fail-open) | enforce (fail-closed)
     timeout_ms: int = 3000
     threat_risk_threshold: int = 70  # risk_score >= this blocks in enforce mode
+    agent_id: str = ""               # Cost Tracking attribution ("" → "hermes-agent")
     enabled: bool = True
     api_key: str = ""                # forwarded as Authorization: Bearer to the app
 
@@ -60,6 +63,7 @@ class Config:
             threat_risk_threshold=int(
                 os.environ.get("SECUREVECTOR_SDK_RISK_THRESHOLD", "70")
             ),
+            agent_id=os.environ.get("SECUREVECTOR_SDK_AGENT_ID", ""),
             enabled=not _truthy(os.environ.get("SECUREVECTOR_SDK_DISABLED", "")),
             api_key=os.environ.get("SECUREVECTOR_API_KEY", ""),
         )
