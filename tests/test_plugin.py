@@ -98,7 +98,11 @@ def test_register_wires_both_hooks(monkeypatch):
     monkeypatch.delenv("SECUREVECTOR_SDK_DISABLED", raising=False)
     ctx = FakeCtx()
     plugin_mod.register(ctx)
-    assert set(ctx.hooks) == {"pre_tool_call", "post_tool_call"}
+    # tool-guard hooks plus the cost-tracking hooks (post_api_request per API
+    # call, post_llm_call per turn — same callable, tracker dedupes).
+    assert set(ctx.hooks) == {
+        "pre_tool_call", "post_tool_call", "post_api_request", "post_llm_call",
+    }
 
 
 def test_register_respects_disabled(monkeypatch):

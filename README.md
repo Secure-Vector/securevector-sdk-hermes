@@ -85,6 +85,25 @@ underneath the approval layer, at the dispatch choke point.
 
 Enforce mode prints a one-time disclosure to stderr.
 
+## LLM cost tracking
+
+Nothing to wire — installing the package is enough. Alongside the tool-guard
+hooks, the plugin registers Hermes's `post_api_request` hook, so every model
+call's token usage (input / output / cached) posts to the app's **Cost
+Tracking**, where the pricing table turns it into real dollars (your agent runs
+on your own API keys) and per-agent budgets apply.
+
+Hermes hands the hook a pre-normalized usage bucket plus the `provider` and
+`model`, so there's no message parsing — the SDK just maps them onto the app's
+pricing keys (e.g. `xai → grok`, `openai-codex → openai`) and posts. Records are
+attributed to `agent_id="hermes-agent"` by default; name yours with
+`SECUREVECTOR_SDK_AGENT_ID`. Capture is best-effort: an unreachable app or an
+unknown model never breaks the agent.
+
+> Cost tracking rides the plugin path (CLI / gateway / ACP). The library-only
+> `install()` embedding wraps the tool registry, not the model call, so it does
+> not emit token usage.
+
 ## Configuration
 
 All optional, via env (the plugin path) or `install(...)` kwargs:
@@ -95,6 +114,7 @@ All optional, via env (the plugin path) or `install(...)` kwargs:
 | `SECUREVECTOR_SDK_MODE` | `observe` | `observe` or `enforce` |
 | `SECUREVECTOR_SDK_TIMEOUT_MS` | `3000` | per-call verdict timeout |
 | `SECUREVECTOR_SDK_RISK_THRESHOLD` | `70` | risk score that blocks in enforce mode |
+| `SECUREVECTOR_SDK_AGENT_ID` | `hermes-agent` | agent id shown in Cost Tracking |
 | `SECUREVECTOR_SDK_DISABLED` | _(unset)_ | set truthy to no-op |
 | `SECUREVECTOR_API_KEY` | _(unset)_ | bearer credential for remote, token-gated deployments |
 
