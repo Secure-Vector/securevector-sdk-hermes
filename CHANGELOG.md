@@ -3,7 +3,11 @@
 All notable changes to `securevector-sdk-hermes` are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.2.0] - unreleased
+## [Unreleased]
+
+### Fixed
+- README: installing on Hermes 0.20 and later. Hermes does not install a plugin's declared Python dependencies, so the package goes into its own folder on `PYTHONPATH`.
+\n## [1.2.0] - 2026-10-22
 
 ### Changed
 - Verified against Hermes Agent 0.19.1, 0.20.6, 0.21.7 and 0.22.4 (plus

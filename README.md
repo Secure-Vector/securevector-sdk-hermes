@@ -72,33 +72,38 @@ environment for each install: `hermes` and its plugin host both run from that
 interpreter. A `pip install` into any other Python, including your user or
 system Python, never reaches it, so the plugin silently does not load.
 
-The supported way to add the SDK is a directory plugin whose manifest declares
-the package; Hermes's package manager installs declared Python dependencies
-into its own environment when the plugin is enabled:
+Hermes does not install a plugin's declared `python_dependencies`: on 0.22.4 it
+checks them and warns, so a directory plugin alone fails to load with
+`No module named securevector_sdk_hermes`. Install the package with the
+interpreter Hermes runs from into a folder of its own, and put that folder on
+`PYTHONPATH` when you start Hermes:
 
 ```bash
-mkdir -p "$HERMES_HOME/plugins/securevector-guard"      # HERMES_HOME defaults to ~/.hermes
+HPY="$(ls -d "$HERMES_HOME"/tools/python-*/bin/python3 | head -1)"   # HERMES_HOME defaults to ~/.hermes; `hermes pm status` shows the active interpreter
+"$HPY" -m pip install --target "$HERMES_HOME/securevector" securevector-sdk-hermes
+
+mkdir -p "$HERMES_HOME/plugins/securevector-guard"
 cat > "$HERMES_HOME/plugins/securevector-guard/plugin.yaml" <<'YAML'
 name: securevector-guard
 version: 1.0.0
 description: SecureVector Guard for Hermes tool calls
-python_dependencies:
-  - securevector-sdk-hermes>=1.2,<2
 YAML
 echo 'from securevector_sdk_hermes.plugin import register' \
   > "$HERMES_HOME/plugins/securevector-guard/__init__.py"
-hermes plugins enable securevector-guard
+hermes plugins enable securevector-guard            # adds it to plugins.enabled
+
+PYTHONPATH="$HERMES_HOME/securevector" hermes       # observe mode is on
 ```
 
-Keep the directory name `securevector-guard` (the same name as the pip entry
-point) so the guard is registered once. Each `HERMES_HOME` (profile) has its own
-`plugins/` folder and `config.yaml`, so repeat this per home. On Nix, add the
-package through `services.hermes-agent.extraPythonPackages` instead.
-
-If you install the package by hand with the interpreter Hermes runs from
-(`hermes pm status` reports the active environment), it works until
-`hermes pm repair` or `hermes update` rebuilds that environment, which drops
-packages Hermes does not know about. Prefer the directory plugin above.
+The folder sits outside Hermes's managed environment, so `hermes pm repair` and
+`hermes update` leave it in place. Keep the directory name `securevector-guard`
+(the same name as the pip entry point) so the guard is registered once. Each
+`HERMES_HOME` (profile) has its own `plugins/` folder and `config.yaml`, so
+repeat the plugin folder and `enable` per home; several homes can share one
+package folder. On Nix, add the package through
+`services.hermes-agent.extraPythonPackages` instead. To keep the folder small
+when the SecureVector app runs elsewhere, add `--no-deps` and install
+`securevector-ai-monitor` into the same folder with `--no-deps` as well.
 
 A denied tool is stopped through Hermes's own `pre_tool_call` block directive —
 the model sees a clean `SecureVector Guard: tool '<name>' blocked — <reason>`
