@@ -20,7 +20,10 @@ case-insensitively; casing is preserved here.
 ``HERMES_BUILTINS`` is the empirical built-in inventory, extracted from the
 ``hermes-agent`` 0.18.0 sdist (AST scan of ``tools/*.py`` ``registry.register``
 calls, plus the Tool-Search bridge tools and the bundled first-party plugin
-tools that ship inside the wheel). Re-verify on every Hermes version bump —
+tools that ship inside the wheel), extended with the tools added in 0.19
+through 0.22 (AST scan plus the live registry of each release's latest
+patch). Names that later releases dropped stay in the table so older Hermes
+installs keep resolving. Re-verify on every Hermes version bump —
 ``tests/test_builtins_drift.py`` compares this table against a live
 ``hermes-agent`` install when one is importable.
 """
@@ -67,7 +70,30 @@ _BUNDLED_PLUGIN_TOOLS = (
     "spotify_playlists", "spotify_queue", "spotify_search",
 )
 
-HERMES_BUILTINS = _CORE_TOOLS + _BRIDGE_TOOLS + _BUNDLED_PLUGIN_TOOLS
+# Added between hermes-agent 0.19 and 0.22 (verified against 0.19.1, 0.20.6,
+# 0.21.7 and 0.22.4). Some exist only in one release (the bfl_flux3_* video
+# tools shipped in 0.19 only; the browser_vault_* family was folded into
+# browser_vault in 0.22) and are kept for the releases that register them.
+_TOOLS_0_19_TO_0_22 = (
+    "a2a_call", "a2a_discover", "a2a_history", "a2a_list", "a2a_orchestrate",
+    "annotate_preview", "apply_layout", "bfl_flux3_get_result",
+    "bfl_flux3_image_to_video", "bfl_flux3_keyframes_to_video",
+    "bfl_flux3_prompting_guide", "bfl_flux3_text_to_video",
+    "bfl_flux3_video_continuation", "browser_exec", "browser_vault",
+    "browser_vault_enter_code", "browser_vault_fill", "browser_vault_list",
+    "browser_vault_save_login", "browser_vault_unlock", "close_preview",
+    "cronjob_manage", "desktop_preview", "desktop_project", "drive_preview",
+    "focus_pane", "gui_tour", "kanban_attach", "kanban_attach_url",
+    "kanban_attachments", "kanban_request_changes", "kanban_request_review",
+    "kanban_schedule", "manage_catalog", "manage_connections", "open_preview",
+    "process_manage", "react_to_message", "read_preview", "read_window_below",
+    "set_theme", "setup_beat", "setup_choose", "setup_mcp", "show_tip",
+    "start_chat", "todo_list", "tour",
+)
+
+HERMES_BUILTINS = (
+    _CORE_TOOLS + _BRIDGE_TOOLS + _BUNDLED_PLUGIN_TOOLS + _TOOLS_0_19_TO_0_22
+)
 
 
 def normalize_tool_id(serialized: Any, name: Optional[str] = None) -> str:

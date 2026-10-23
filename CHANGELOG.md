@@ -3,6 +3,29 @@
 All notable changes to `securevector-sdk-hermes` are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - unreleased
+
+### Changed
+- Verified against Hermes Agent 0.19.1, 0.20.6, 0.21.7 and 0.22.4 (plus
+  0.18.x): the `tools.registry.registry.dispatch` wrap, the
+  `hermes_agent.plugins` entry point, and the `pre_tool_call`,
+  `post_tool_call`, `post_api_request` and `post_llm_call` hooks behave the
+  same on each, in-process and under `plugins.isolation: host`.
+- `hermes-agent` moved from a hard dependency to the optional `hermes` extra,
+  now `hermes-agent>=0.18,<0.23`. Hermes 0.20+ is not on PyPI and 0.21+
+  reports version `0.0.0` in its package metadata, so a hard requirement made
+  pip replace an installed Hermes with an older PyPI build.
+- `HERMES_BUILTINS` now includes the built-in tools added in Hermes 0.19
+  through 0.22 (48 names, among them `a2a_*`, `browser_vault*`,
+  `cronjob_manage`, `process_manage`, `todo_list` and the preview tools). Names
+  later releases dropped stay so older installs keep resolving.
+
+### Documentation
+- README: the plugin must be enabled (`hermes plugins enable
+  securevector-guard`), and how to install into the per-install Python
+  environment that Hermes 0.20+ manages (directory plugin with
+  `python_dependencies`).
+
 ## [1.1.0]
 
 ### Added

@@ -26,9 +26,9 @@ pip install securevector-sdk-hermes
 > deployment:
 >
 > ```bash
-> # lightweight — adapter only, no bundled app.
-> # NOTE: --no-deps also skips hermes-agent; that's fine because the machine
-> # running Hermes already has it. Ensure hermes-agent is installed there.
+> # lightweight — adapter only, no bundled app. hermes-agent is never pulled
+> # in by this package; install it into the Python environment Hermes runs
+> # from (see "Installing into Hermes's own environment" below).
 > pip install securevector-sdk-hermes --no-deps
 >
 > # point at your SecureVector endpoint — all you need for a private (in-VPC) endpoint
@@ -52,12 +52,53 @@ on startup in **every mode**: the interactive `hermes` CLI, `hermes gateway`
 (Telegram / Discord / Slack / …), and the ACP/Zed adapter.
 
 ```bash
-pip install securevector-sdk-hermes
-hermes                       # that's it — observe mode is on
+pip install securevector-sdk-hermes          # into the Python that runs `hermes`
+hermes plugins enable securevector-guard     # Hermes loads pip plugins only once enabled
+hermes                                       # observe mode is on
 
 export SECUREVECTOR_SDK_MODE=enforce   # opt into blocking
 hermes
 ```
+
+`hermes plugins enable` adds `securevector-guard` to `plugins.enabled` in
+`$HERMES_HOME/config.yaml`; you can also add it there by hand. Hermes skips
+any non-bundled plugin that is not listed there.
+
+### Installing into Hermes's own environment (Hermes 0.20 and later)
+
+Hermes 0.20+ is installed with its shell installer, Docker image or Nix, not
+from PyPI, and its package manager (`hermes pm`) keeps a private Python
+environment for each install: `hermes` and its plugin host both run from that
+interpreter. A `pip install` into any other Python, including your user or
+system Python, never reaches it, so the plugin silently does not load.
+
+The supported way to add the SDK is a directory plugin whose manifest declares
+the package; Hermes's package manager installs declared Python dependencies
+into its own environment when the plugin is enabled:
+
+```bash
+mkdir -p "$HERMES_HOME/plugins/securevector-guard"      # HERMES_HOME defaults to ~/.hermes
+cat > "$HERMES_HOME/plugins/securevector-guard/plugin.yaml" <<'YAML'
+name: securevector-guard
+version: 1.0.0
+description: SecureVector Guard for Hermes tool calls
+python_dependencies:
+  - securevector-sdk-hermes>=1.2,<2
+YAML
+echo 'from securevector_sdk_hermes.plugin import register' \
+  > "$HERMES_HOME/plugins/securevector-guard/__init__.py"
+hermes plugins enable securevector-guard
+```
+
+Keep the directory name `securevector-guard` (the same name as the pip entry
+point) so the guard is registered once. Each `HERMES_HOME` (profile) has its own
+`plugins/` folder and `config.yaml`, so repeat this per home. On Nix, add the
+package through `services.hermes-agent.extraPythonPackages` instead.
+
+If you install the package by hand with the interpreter Hermes runs from
+(`hermes pm status` reports the active environment), it works until
+`hermes pm repair` or `hermes update` rebuilds that environment, which drops
+packages Hermes does not know about. Prefer the directory plugin above.
 
 A denied tool is stopped through Hermes's own `pre_tool_call` block directive —
 the model sees a clean `SecureVector Guard: tool '<name>' blocked — <reason>`
@@ -142,12 +183,19 @@ All optional, via env (the plugin path) or `install(...)` kwargs:
 | `SECUREVECTOR_SDK_DISABLED` | _(unset)_ | set truthy to no-op |
 | `SECUREVECTOR_API_KEY` | _(unset)_ | bearer credential for remote, token-gated deployments |
 
-## Version pinning
+## Hermes compatibility
 
-The guard attaches to Hermes internals (the plugin hook bus and
-`tools.registry`), so the dependency is pinned to the verified minor:
-`hermes-agent>=0.18,<0.19`. Each upstream minor is re-verified against the
-attach points before the pin is raised — see [CHANGELOG](CHANGELOG.md).
+Verified with Hermes Agent 0.18 through 0.22 (0.18.0 and the latest patches 0.19.1,
+0.20.6, 0.21.7 and 0.22.4). The guard attaches to Hermes internals (the plugin
+hook bus and `tools.registry`), so each upstream minor is re-verified against
+the attach points before the verified range is raised; see
+[CHANGELOG](CHANGELOG.md).
+
+`hermes-agent` is not a hard dependency: Hermes 0.20+ is not published to PyPI
+and its checkouts report version `0.0.0` in package metadata, so a version
+requirement would make pip replace your Hermes with an old PyPI build. For a
+pip-only setup on Hermes 0.18 or 0.19, `pip install
+"securevector-sdk-hermes[hermes]"` installs a matching `hermes-agent`.
 
 ## Privacy
 
