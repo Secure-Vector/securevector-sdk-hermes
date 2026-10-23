@@ -3,7 +3,7 @@
 All notable changes to `securevector-sdk-hermes` are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.2.0] - unreleased
 
 ### Changed
 - Verified against Hermes Agent 0.19.1, 0.20.6, 0.21.7 and 0.22.4 (plus
