@@ -28,17 +28,24 @@ classifiers = [
 #   - securevector-ai-monitor: the local app + the shipped SecureVectorClient
 #     (the detection engine + tamper-evident audit chain live there). One
 #     `pip install securevector-sdk-hermes` brings the adapter AND the app.
-#   - hermes-agent: pinned to the verified minor — the guard attaches to
-#     hermes internals (plugin hooks + tools.registry), so every upstream
-#     minor bump must be re-verified against the patch target before the
-#     pin is raised (story #183 acceptance gate).
+#   - hermes-agent: NOT a hard dependency. Hermes 0.20+ is no longer
+#     published to PyPI (the shell installer, Docker and Nix own its
+#     environment) and 0.21+ checkouts report version 0.0.0 in their package
+#     metadata, so a hard requirement would make pip replace the user's Hermes
+#     with an old PyPI build. The guard attaches to Hermes internals (plugin
+#     hooks + tools.registry); every upstream minor is re-verified before the
+#     verified range below is raised (story #183 acceptance gate).
+#     Verified: 0.18 through 0.22. The `hermes` extra pulls a PyPI build for
+#     pip-only setups.
 # Everything else (permission resolution, audit forwarding) uses the stdlib.
 dependencies = [
     "securevector-ai-monitor>=4.7",
-    "hermes-agent>=0.18,<0.19",
 ]
 
 [project.optional-dependencies]
+hermes = [
+    "hermes-agent>=0.18,<0.23",
+]
 dev = [
     "pytest>=7.0",
 ]

@@ -1,6 +1,7 @@
 """Drift guard: HERMES_BUILTINS vs a real hermes-agent install.
 
-HERMES_BUILTINS was extracted from the hermes-agent 0.18.0 sdist. Tool names
+HERMES_BUILTINS was extracted from the hermes-agent 0.18.0 sdist and
+extended through 0.22.4. Tool names
 Hermes actually dispatches must be resolvable by our permission layer, so any
 tool present in a live registry but missing from our table is drift — fix the
 table (and re-check the app-side registry rows) before raising the version pin.
